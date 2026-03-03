@@ -1,0 +1,101 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cstring>
+#include <ctime>
+#include <stdint.h>
+
+#define ROTL(d, lrot) ((d << (lrot)) | (d >> (64 - (lrot))))
+#define SIZE 16
+
+struct SI2DAHA
+{
+    static uint64_t romu_mix(uint64_t seed)
+    {
+        uint64_t xState = seed;
+        uint64_t yState = seed ^ 0x9e3779b97f4a7c15ULL;
+        for (int i = 0; i < 4; i++)
+        {
+            uint64_t xp = xState;
+            xState = 15241094284759029579u * yState;
+            yState = yState - xp;
+            yState = ROTL(yState, 27);
+        }
+        return xState;
+    }
+
+    static uint64_t get_hash(const uint8_t grid[SIZE][SIZE])
+    {
+        uint64_t final_hash = 0;
+        for (int y = 0; y < SIZE; y++)
+        {
+            for (int x = 0; x < SIZE; x++)
+            {
+                if (grid[y][x])
+                {
+                    int cx = 2 * x - (SIZE - 1);
+                    int cy = 2 * y - (SIZE - 1);
+                    int ax = (cx < 0) ? -cx : cx;
+                    int ay = (cy < 0) ? -cy : cy;
+                    uint64_t u = (ax < ay) ? (uint64_t)ax : (uint64_t)ay;
+                    uint64_t v = (ax < ay) ? (uint64_t)ay : (uint64_t)ax;
+                    final_hash ^= romu_mix((u << 32) | (v & 0xFFFFFFFF));
+                }
+            }
+        }
+        return romu_mix(final_hash);
+    }
+};
+
+int count_set_bits(uint64_t n)
+{
+    return __builtin_popcountll(n);
+}
+
+int main()
+{
+    srand(time(NULL));
+    const int TRIALS = 1000000;
+    const int AVALANCHE_SAMPLES = 100;
+    uint8_t soup[SIZE][SIZE];
+
+    double avalanche_total = 0;
+    for (int i = 0; i < AVALANCHE_SAMPLES; i++)
+    {
+        for (int r = 0; r < SIZE; r++)
+            for (int c = 0; c < SIZE; c++)
+                soup[r][c] = rand() % 2;
+
+        uint64_t hash_orig = SI2DAHA::get_hash(soup);
+
+        int rx = rand() % SIZE;
+        int ry = rand() % SIZE;
+        soup[ry][rx] ^= 1;
+
+        uint64_t hash_flipped = SI2DAHA::get_hash(soup);
+        avalanche_total += count_set_bits(hash_orig ^ hash_flipped);
+    }
+    printf("Avalanche Test (100 samples, 1-bit flip): Avg bit change: %.2f bits\n", avalanche_total / AVALANCHE_SAMPLES);
+
+    clock_t start = clock();
+    uint64_t prev_h = 0;
+    double total_bit_diff = 0;
+
+    for (int i = 0; i < TRIALS; i++)
+    {
+        for (int r = 0; r < SIZE; r++)
+            for (int c = 0; c < SIZE; c++)
+                soup[r][c] = rand() % 2;
+
+        uint64_t h = SI2DAHA::get_hash(soup);
+        total_bit_diff += count_set_bits(h ^ prev_h);
+        prev_h = h;
+    }
+    clock_t end = clock();
+
+    double time_taken = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("Speed: %.2f seconds for 1M hashes (%.2f ns/hash)\n", time_taken, (time_taken / TRIALS) * 1e9);
+    printf("General Entropy: Avg bit change: %.2f bits\n", total_bit_diff / TRIALS);
+
+    return 0;
+}

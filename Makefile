@@ -1,18 +1,14 @@
-CC = gcc
 CXX = g++
-CFLAGS = -O3 -std=c11
-CXXFLAGS = -O3
+CXXFLAGS = -O3 -std=c++11
 
-all: test main
+all: main test
 
 main: main.cpp
 	$(CXX) $(CXXFLAGS) -o main main.cpp
 
-test: test.c
-	$(CC) $(CFLAGS) -o test test.c
+test: test.cpp
+	$(CXX) $(CXXFLAGS) -o test test.cpp
 	./test
 
 clean:
 	rm -f test main
-
-.PHONY: all clean test
