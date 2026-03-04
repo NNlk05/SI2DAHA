@@ -15,6 +15,7 @@ struct D4IHA {
             yState = yState - xp;
             yState = ROTL(yState, 27);
         }
+
         return xState; 
     }
 
@@ -57,16 +58,13 @@ int main() {
         } else {
             int run = (count == 0) ? 1 : count;
             if (c == 'o') { 
-
                 for (int i = 0; i < run; ++i) {
                     final_hash ^= D4IHA::get_orbit_weight(curX + i, curY, W, H);
                 }
                 curX += run;
             } else if (c == 'b') { 
-
                 curX += run;
             } else if (c == '$') { 
-
                 curY += run;
                 curX = 0;
             }
