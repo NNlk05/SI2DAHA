@@ -6,7 +6,7 @@
 #define ROTL(d, lrot) ((d << (lrot)) | (d >> (64 - (lrot))))
 #define SIZE 16
 
-struct SI2DAHA {
+struct D4IHA {
 
     static uint64_t romu_mix(uint64_t seed) {
         uint64_t xState = seed;
@@ -56,11 +56,11 @@ int main() {
         for (int r = 0; r < SIZE; r++)
             for (int c = 0; c < SIZE; c++) soup[r][c] = rand() % 2;
 
-        uint64_t hash_orig = SI2DAHA::get_hash(soup);
+        uint64_t hash_orig = D4IHA::get_hash(soup);
 
         soup[rand() % SIZE][rand() % SIZE] ^= 1;
 
-        uint64_t hash_flipped = SI2DAHA::get_hash(soup);
+        uint64_t hash_flipped = D4IHA::get_hash(soup);
         avalanche_total += __builtin_popcountll(hash_orig ^ hash_flipped);
     }
     printf("Avalanche Test (%d samples): Avg bit change: %.2f bits\n", AVALANCHE_SAMPLES, avalanche_total / AVALANCHE_SAMPLES);
@@ -73,7 +73,7 @@ int main() {
         for (int r = 0; r < SIZE; r++)
             for (int c = 0; c < SIZE; c++) soup[r][c] = rand() % 2;
 
-        uint64_t h = SI2DAHA::get_hash(soup);
+        uint64_t h = D4IHA::get_hash(soup);
         if (i > 0) total_bit_diff += __builtin_popcountll(h ^ prev_h);
         prev_h = h;
     }

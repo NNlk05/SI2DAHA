@@ -4,29 +4,9 @@
 
 #define ROTL(d,lrot) ((d<<(lrot)) | (d>>(64-(lrot))))
 
-struct SI2DAHA {
+struct D4IHA {
     static uint64_t romu_mix(uint64_t seed) {
-        // Romu Pseudorandom Number Generators
-        //
-        // Copyright 2020 Mark A. Overton
-        // 
-        // Licensed under the Apache License, Version 2.0 (the "License");
-        // you may not use this file except in compliance with the License.
-        // You may obtain a copy of the License at
-        // 
-        //     http://www.apache.org/licenses/LICENSE-2.0
-        // 
-        // Unless required by applicable law or agreed to in writing, software
-        // distributed under the License is distributed on an "AS IS" BASIS,
-        // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-        // See the License for the specific language governing permissions and
-        // limitations under the License.
-        //
-        // ------------------------------------------------------------------------------------------------
-        //
-        // Website: romu-random.org
-        // Paper:   http://arxiv.org/abs/2002.11331
-            uint64_t xState = seed;
+        uint64_t xState = seed;
         uint64_t yState = seed ^ 0x9e3779b97f4a7c15ULL;
 
         for (int i = 0; i < 4; i++) {
@@ -35,12 +15,11 @@ struct SI2DAHA {
             yState = yState - xp;
             yState = ROTL(yState, 27);
         }
-
         return xState; 
     }
 
     static uint64_t get_orbit_weight(int x, int y, int W, int H) {
-        int N = (W > H) ? W : H;
+
         int cx = 2 * x - (W - 1);
         int cy = 2 * y - (H - 1);
 
@@ -78,13 +57,16 @@ int main() {
         } else {
             int run = (count == 0) ? 1 : count;
             if (c == 'o') { 
+
                 for (int i = 0; i < run; ++i) {
-                    final_hash ^= SI2DAHA::get_orbit_weight(curX + i, curY, W, H);
+                    final_hash ^= D4IHA::get_orbit_weight(curX + i, curY, W, H);
                 }
                 curX += run;
             } else if (c == 'b') { 
+
                 curX += run;
             } else if (c == '$') { 
+
                 curY += run;
                 curX = 0;
             }
@@ -92,7 +74,7 @@ int main() {
         }
     }
 
-    std::cout << std::hex << SI2DAHA::romu_mix(final_hash) << std::endl;
+    std::cout << std::hex << D4IHA::romu_mix(final_hash) << std::endl;
 
     return 0;
 }
